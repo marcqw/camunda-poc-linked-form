@@ -1,50 +1,48 @@
-// Define the variables
-const audience = 'tasklist.camunda.io';
-const clientId = 'NMI~3rlR-xq2GilhHOfGleT55Rz2gR~A';
-const clientSecret = 'WxbTAdYTb.A9_dFhzidPQbyiz.giMKOxj~3rCtbDJuxTlZNTX6hb0qsU2.JP96p.';
-const processDefinitionKey = '2251799818630281';
+const axios = require('axios');
+require('dotenv').config();
 
-// Define an async function to handle the fetch operations
-async function fetchData() {
-    // Step 1: Obtain access token
-    const tokenResponse = await fetch('https://login.cloud.camunda.io/oauth/token', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
+const getToken = async () => {
+    try {
+        const response = await axios.post('https://login.cloud.camunda.io/oauth/token', {
             grant_type: 'client_credentials',
-            audience: audience,
-            client_id: clientId,
-            client_secret: clientSecret
-        })
-    });
+            audience: 'tasklist.camunda.io',
+            client_id: process.env.CLIENT_ID,
+            client_secret: process.env.CLIENT_SECRET
+        }, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data.access_token;
+    } catch (error) {
+        console.error('Error getting token:', error);
+        throw error;
+    }
+};
 
-    const tokenData = await tokenResponse.json();
-    const TEMP_CAMUNDA_ACCESS_TOKEN = tokenData.access_token;
+const getFormSchema = async (token) => {
+    try {
+        const response = await axios.get('https://bru-2.tasklist.camunda.io/eeba2b51-62fc-4c8a-9292-b9e119b9cbc3/v1/forms/Form_demoRequest?processDefinitionKey=2251799818630281', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        return response.data.schema;
+    } catch (error) {
+        console.error('Error getting form schema:', error);
+        throw error;
+    }
+};
 
-    // Step 2: Fetch the form schema
-    const formResponse = await fetch(`https://bru-2.tasklist.camunda.io/eeba2b51-62fc-4c8a-9292-b9e119b9cbc3/v1/forms/Form_demoRequest?processDefinitionKey=${processDefinitionKey}`, {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${TEMP_CAMUNDA_ACCESS_TOKEN}`
-        }
-    });
+const main = async () => {
+    try {
+        const token = await getToken();
+        console.log('Access Token:', token);
+        const formSchema = await getFormSchema(token);
+        console.log('Form Schema:', formSchema);
+    } catch (error) {
+        console.error('Error in main function:', error);
+    }
+};
 
-    const formData = await formResponse.json();
-    const formSchema = formData.schema;
-
-    // Step 3: Store the schema content in a variable
-    console.log("Form Schema:", formSchema);
-    // You can now use the formSchema variable as needed in your application
-
-    const container = document.querySelector('#form');
-
-    FormViewer.createForm({
-        container,
-        formSchema
-    });
-}
-
-// Call the async function
-fetchData();
+main();
