@@ -4,8 +4,6 @@ const clientId = 'NMI~3rlR-xq2GilhHOfGleT55Rz2gR~A';
 const clientSecret = 'WxbTAdYTb.A9_dFhzidPQbyiz.giMKOxj~3rCtbDJuxTlZNTX6hb0qsU2.JP96p.';
 const processDefinitionKey = '2251799818630281';
 
-async function fetchFormSchema() {
-    try {
         // Step 1: Obtain access token
         const tokenResponse = await fetch('https://login.cloud.camunda.io/oauth/token', {
             method: 'POST',
@@ -38,7 +36,12 @@ async function fetchFormSchema() {
         console.log("Form Schema:", formSchema);
         // You can now use the formSchema variable as needed in your application
 
-    } catch (error) {
-        console.error('Error fetching form schema:', error);
-    }
-}
+
+
+
+  const container = document.querySelector('#form');
+
+  FormViewer.createForm({
+    container,
+    formSchema
+  });
